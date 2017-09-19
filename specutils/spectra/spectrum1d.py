@@ -61,6 +61,8 @@ class Spectrum1D(OneDSpectrumMixin, NDDataRef):
                 elif wcs.wcs.restwav != 0:
                     self._rest_value = wcs.wcs.restwav * u.AA
 
+        self._spectral_axis = spectral_axis
+
         super(Spectrum1D, self).__init__(data=flux.value, unit=flux.unit,
                                          wcs=wcs, *args, **kwargs)
 
@@ -184,3 +186,25 @@ class Spectrum1D(OneDSpectrumMixin, NDDataRef):
             shape is the result of broadcasting the input shapes.
         """
         pass
+
+
+    def __getitem__(self, item):
+        """ Slice the Spectrum1D object using a set of input indices
+        Repetition is allowed
+
+        Parameters
+        ----------
+        item
+
+        Returns
+        -------
+
+        """
+        # Slice internal data
+        if isinstance(item, int):
+            newdata = self.data[np.array([item])]
+        else:
+            newdata = self.data[item]
+        # Create
+        return Spectrum1D(newdata['wave'], newdata['flux'], newdata['sig'], newdata['co'],
+                           units=self.units, meta=self.meta)

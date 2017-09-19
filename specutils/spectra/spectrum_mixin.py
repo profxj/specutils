@@ -71,6 +71,9 @@ class OneDSpectrumMixin(object):
         time?  Cache?
         """
 
+        if self.wcs is None:
+            return self._spectral_axis
+
         spectral_wcs = self.spectral_wcs
 
         # Lim: What if I have wavelength arrays and I don't want WCS

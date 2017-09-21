@@ -18,7 +18,7 @@ class Spectrum1D(OneDSpectrumMixin, NDDataRef):
     """
     Spectrum container for 1D spectral data.
     """
-    def __init__(self, flux, spectral_axis=None, wcs=None, unit=None,
+    def __init__(self, flux, spectral_axis=None, sig=None, wcs=None, unit=None,
                  spectral_axis_unit=None, *args, **kwargs):
 
         if not isinstance(flux, Quantity):
@@ -61,12 +61,16 @@ class Spectrum1D(OneDSpectrumMixin, NDDataRef):
                 elif wcs.wcs.restwav != 0:
                     self._rest_value = wcs.wcs.restwav * u.AA
 
-        self._spectral_axis = spectral_axis
+        if wcs is None:
+            self._spectral_axis = spectral_axis
 
         super(Spectrum1D, self).__init__(data=flux.value, unit=flux.unit,
                                          wcs=wcs, *args, **kwargs)
-
-
+        # Error
+        if sig is not None:
+            self._sig = sig
+        else:
+            self._sig = None
 
     @property
     def frequency(self):
@@ -188,23 +192,27 @@ class Spectrum1D(OneDSpectrumMixin, NDDataRef):
         pass
 
 
-    def __getitem__(self, item):
+    def __getitem__(self, idx):
         """ Slice the Spectrum1D object using a set of input indices
         Repetition is allowed
 
         Parameters
         ----------
-        item
+        item : int or ndarray of int
 
         Returns
         -------
 
         """
+        if self.wcs is not None:
+            raise IOError("I have no idea how to slice your wcs")
         # Slice internal data
-        if isinstance(item, int):
-            newdata = self.data[np.array([item])]
+        newflux = self.flux[idx]
+        newwave = self.wavelength[idx]
+        if self._sig is not None:
+            newsig = self.sig[idx]
         else:
-            newdata = self.data[item]
+            newsig = None
         # Create
-        return Spectrum1D(newdata['wave'], newdata['flux'], newdata['sig'], newdata['co'],
-                           units=self.units, meta=self.meta)
+        return Spectrum1D(spectral_axis=newwave, flux=newflux,
+                          sig=newsig, meta=self.meta)

@@ -139,6 +139,14 @@ class OneDSpectrumMixin(object):
         return self.flux
 
     @property
+    def sig(self):
+        if self._sig is not None:
+            return self._sig * Unit(self.unit)
+        else:
+            return None
+
+
+    @property
     def velocity_convention(self):
         return self._velocity_convention
 
